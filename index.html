@@ -550,7 +550,7 @@
             document.getElementById('selectedChapterTitle').innerText = `Chapter ${chapNum} (${title}) - Practice Sets`;
             const grid = document.getElementById('setsGrid');
             
-            grid.innerHTML = Array.from({length: 5}, (_, i) => i + 1).map(setNum => {
+            grid.innerHTML = Array.from({length: 9}, (_, i) => i + 1).map(setNum => {
                 const fullKey = `${subId}_chap${chapNum}_set${setNum}`;
                 return `
                     <button onclick="startTestEngine('${fullKey}', '${subId}', ${chapNum}, ${setNum})" class="bg-white border-2 border-brand-rose hover:bg-brand-pink hover:text-white p-3 rounded-xl text-center font-bold text-brand-pink transition shadow-sm">
