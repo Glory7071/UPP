@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mission Pari UP | Discussion Lounge</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            pink: '#f43f5e',
+                            roseBg: '#fff1f2',
+                            darkViolet: '#6d28d9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- FIREBASE COMPAT SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+      // Firebase Configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyAzeWPIBXMI4GUZFKEnWdpZS0NntYhpS3o",
+        authDomain: "batch-13137.firebaseapp.com",
+        databaseURL: "https://batch-13137-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "batch-13137",
+        storageBucket: "batch-13137.firebasestorage.app",
+        messagingSenderId: "275925595005",
+        appId: "1:275925595005:web:3474e1820603eafcf81214",
+        measurementId: "G-NZQZBMREFZ"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fda4af; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-brand-roseBg text-gray-800 font-sans h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-rose-200 px-4 py-3 flex justify-between items-center shadow-sm shrink-0">
+        <div class="flex items-center gap-3">
+            <a href="fresh_2.html" class="p-2 bg-rose-50 text-brand-pink rounded-full hover:bg-rose-100 transition" title="Back to Portal">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="font-bold text-base md:text-lg text-brand-pink leading-tight">Student Discussion Lounge</h1>
+                <p class="text-[11px] text-gray-500">Live doubt solving & community discussion</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <img id="loungeUserAvatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80" class="w-8 h-8 rounded-full border border-brand-pink object-cover">
+            <span id="loungeUserName" class="text-xs font-bold text-gray-700 hidden sm:inline">Student</span>
+        </div>
+    </header>
+
+    <!-- Chat Messages Container -->
+    <main id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar">
+        <div class="text-center text-xs text-gray-400 my-2">Loading messages...</div>
+    </main>
+
+    <!-- Image Preview Area before sending -->
+    <div id="imagePreviewContainer" class="hidden px-4 py-2 bg-white border-t border-gray-200 flex items-center gap-3 shrink-0">
+        <div class="relative">
+            <img id="imagePreview" src="" class="w-16 h-16 object-cover rounded-lg border border-rose-300">
+            <button onclick="clearImagePreview()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow">✕</button>
+        </div>
+        <span class="text-xs text-gray-500">Image attached (Ready to send)</span>
+    </div>
+
+    <!-- Message Input Bar -->
+    <footer class="bg-white border-t border-rose-200 p-3 shrink-0">
+        <form id="chatForm" class="flex items-center gap-2 max-w-4xl mx-auto">
+            <!-- File Input for Attachment -->
+            <label for="chatImgInput" class="p-2.5 text-gray-500 hover:text-brand-pink hover:bg-rose-50 rounded-xl cursor-pointer transition">
+                <i class="fas fa-paperclip text-lg"></i>
+            </label>
+            <input type="file" id="chatImgInput" accept="image/*" class="hidden" onchange="handleImageSelect(event)">
+
+            <input type="text" id="msgInput" placeholder="Type your doubt or message..." class="flex-1 p-2.5 bg-gray-50 border rounded-xl text-sm outline-none focus:border-brand-pink">
+
+            <button type="submit" id="sendBtn" class="bg-brand-pink text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow hover:bg-rose-600 transition flex items-center gap-1 shrink-0">
+                <span>Send</span>
+                <i class="fas fa-paper-plane text-xs"></i>
+            </button>
+        </form>
+    </footer>
+
+    <script>
+        // Check local session
+        const currentSession = JSON.parse(localStorage.getItem('mp_student_session')) || {
+            name: 'Anonymous Student',
+            phone: 'guest_' + Date.now(),
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'
+        };
+
+        document.getElementById('loungeUserName').innerText = currentSession.name;
+        document.getElementById('loungeUserAvatar').src = currentSession.avatar;
+
+        let attachedBase64Image = null;
+
+        // Handle Image Selection
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    attachedBase64Image = e.target.result;
+                    document.getElementById('imagePreview').src = attachedBase64Image;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearImagePreview() {
+            attachedBase64Image = null;
+            document.getElementById('chatImgInput').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+        }
+
+        // Firestore Realtime Listener for Lounge Messages
+        db.collection('lounge_messages').orderBy('createdAt', 'asc').onSnapshot(snapshot => {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = '';
+
+            if (snapshot.empty) {
+                chatBox.innerHTML = `<div class="text-center text-xs text-gray-400 my-4">Koi message nahi hai. Pehla message bhejin!</div>`;
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const msgId = doc.id;
+                const isMe = msg.phone === currentSession.phone;
+
+                const msgTime = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+
+                const messageHTML = `
+                    <div class="flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''} items-start group">
+                        <img src="${msg.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}" class="w-8 h-8 rounded-full border object-cover shrink-0">
+                        
+                        <div class="max-w-[75%] space-y-1">
+                            <div class="flex items-center gap-2 ${isMe ? 'justify-end' : ''}">
+                                <span class="text-[11px] font-bold text-gray-600">${isMe ? 'You' : msg.senderName}</span>
+                                <span class="text-[10px] text-gray-400">${msgTime}</span>
+                            </div>
+
+                            <div class="p-3 rounded-2xl text-xs space-y-2 relative shadow-sm ${isMe ? 'bg-brand-pink text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none border border-rose-100'}">
+                                ${msg.text ? `<p class="whitespace-pre-wrap leading-relaxed">${escapeHtml(msg.text)}</p>` : ''}
+                                ${msg.imageUrl ? `<img src="${msg.imageUrl}" class="rounded-lg max-h-56 object-cover border border-black/10">` : ''}
+                            </div>
+                        </div>
+
+                        ${isMe ? `
+                            <button onclick="deleteMessage('${msgId}')" class="opacity-0 group-hover:opacity-100 transition text-red-400 hover:text-red-600 text-xs self-center p-1" title="Delete Message">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                chatBox.insertAdjacentHTML('beforeend', messageHTML);
+            });
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        // Send Message Handler
+        document.getElementById('chatForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const textInput = document.getElementById('msgInput');
+            const text = textInput.value.trim();
+
+            if (!text && !attachedBase64Image) return;
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+
+            try {
+                await db.collection('lounge_messages').add({
+                    senderName: currentSession.name,
+                    phone: currentSession.phone,
+                    avatar: currentSession.avatar,
+                    text: text,
+                    imageUrl: attachedBase64Image || null,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                textInput.value = '';
+                clearImagePreview();
+            } catch (err) {
+                console.error("Error sending message:", err);
+                alert("Message send nahi ho paya. Firebase connection check karein.");
+            } finally {
+                sendBtn.disabled = false;
+            }
+        };
+
+        // Delete Message Handler
+        async function deleteMessage(docId) {
+            if (confirm("Kya aap apna ye message delete karna chahte hain?")) {
+                try {
+                    await db.collection('lounge_messages').doc(docId).delete();
+                } catch (err) {
+                    console.error("Error deleting message:", err);
+                    alert("Message delete nahi ho paya.");
+                }
+            }
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

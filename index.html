@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mission Pari UP | CBT Test Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            pink: '#f43f5e',
+                            rose: '#fda4af',
+                            roseBg: '#fff1f2',
+                            violet: '#8b5cf6',
+                            darkViolet: '#6d28d9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fda4af; border-radius: 10px; }
+        
+        .pnum { width: 34px; height: 34px; border-radius: 8px; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; background: #f3f4f6; color: #374151; }
+        .pnum.cur { border: 2px solid #f43f5e; font-size: 14px; }
+        .pnum.ans { background: #10b981; color: white; border-color: #059669; }
+        .pnum.rev { background: #f59e0b; color: white; border-color: #d97706; }
+
+        @keyframes scrollTicker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-ticker {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollTicker 50s linear infinite;
+        }
+        .animate-ticker:hover {
+            animation-play-state: paused;
+        }
+
+        .safe-bottom-padding {
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+        }
+
+        .nav-btn-active {
+            color: #f43f5e !important;
+            font-weight: 700 !important;
+        }
+        .nav-btn-inactive {
+            color: #6b7280 !important;
+            font-weight: 500 !important;
+        }
+    </style>
+
+    <!-- SUBJECT-WISE SEPARATE JS FILES LINKED HERE -->
+    <script src="maths_data.js"></script>
+    <script src="hindi_data.js"></script>
+    <script src="reasoning_data.js"></script>
+    <script src="gk_data.js"></script>
+
+    <!-- FIREBASE COMPAT SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+      // Firebase Configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyAzeWPIBXMI4GUZFKEnWdpZS0NntYhpS3o",
+        authDomain: "batch-13137.firebaseapp.com",
+        databaseURL: "https://batch-13137-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "batch-13137",
+        storageBucket: "batch-13137.firebasestorage.app",
+        messagingSenderId: "275925595005",
+        appId: "1:275925595005:web:3474e1820603eafcf81214",
+        measurementId: "G-NZQZBMREFZ"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
+</head>
+<body class="bg-brand-roseBg text-gray-800 font-sans flex flex-col min-h-screen pb-20 md:pb-0">
+
+    <!-- STUDENT LOGIN OVERLAY MODAL -->
+    <div id="studentLoginModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-md space-y-4 shadow-2xl border-2 border-brand-pink">
+            <div class="text-center">
+                <span class="text-3xl">🌸</span>
+                <h2 class="text-xl font-bold text-brand-pink mt-1">Student Registration / Login</h2>
+                <p class="text-xs text-gray-500">Test start karne ke liye details bharein</p>
+            </div>
+            <form id="studentLoginForm" class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold text-gray-600 block mb-1">Full Name</label>
+                    <input type="text" id="regStuName" placeholder="Apna Poora Naam Likhie" required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-brand-pink">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600 block mb-1">Mobile / WhatsApp Number</label>
+                    <input type="tel" id="regStuPhone" placeholder="Mobile Number" required class="w-full p-2.5 border rounded-lg text-sm outline-none focus:border-brand-pink">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600 block mb-1">Profile Photo (Optional)</label>
+                    <input type="file" id="regStuPhoto" accept="image/*" class="w-full text-xs text-gray-500">
+                </div>
+                <button type="submit" id="regSubmitBtn" class="w-full bg-brand-pink text-white py-3 rounded-xl font-bold shadow-lg hover:bg-rose-600 transition">ENTER PORTAL 🚀</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-rose-200 sticky top-0 z-40 px-4 py-3 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">🌸</span>
+            <h1 class="font-extrabold text-lg md:text-xl text-brand-pink tracking-wide">Mission Pari UP</h1>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <span id="headerUserName" class="hidden md:inline text-xs font-bold text-gray-700">Student</span>
+
+            <a href="lounge.html" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-brand-pink rounded-full flex items-center gap-2 transition text-xs font-bold shadow-sm" title="Chat Lounge">
+                <i class="fas fa-comments text-sm"></i>
+                <span class="hidden sm:inline">Discussion Lounge</span>
+            </a>
+
+            <button onclick="logoutStudent()" class="px-2.5 py-1 bg-gray-100 hover:bg-red-100 text-red-500 rounded-lg text-xs font-bold transition flex items-center gap-1" title="Logout & Re-register">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="hidden sm:inline">Logout</span>
+            </button>
+
+            <div class="relative group">
+                <label for="profileUpload" class="cursor-pointer block relative">
+                    <img id="userAvatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80" class="w-10 h-10 rounded-full border-2 border-brand-pink object-cover shadow-sm" alt="Profile">
+                    <span class="absolute bottom-0 right-0 bg-brand-pink text-white text-[10px] p-1 rounded-full"><i class="fas fa-camera"></i></span>
+                </label>
+                <input type="file" id="profileUpload" accept="image/*" class="hidden">
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="hidden md:flex flex-col w-64 bg-white border-r border-rose-200 p-4 gap-2 shadow-sm">
+            <button onclick="showSection('homeSection')" class="sidebar-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-50 text-gray-700 font-medium"><i class="fas fa-home text-brand-pink"></i> Home</button>
+            <button onclick="showSection('subjectsSection')" class="sidebar-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-50 text-gray-700 font-medium"><i class="fas fa-book-open text-brand-violet"></i> Subjects</button>
+            <button onclick="showSection('testsSection')" class="sidebar-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-50 text-gray-700 font-medium"><i class="fas fa-pen-nib text-brand-pink"></i> Tests Panel</button>
+            <button onclick="showSection('progressSection')" class="sidebar-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-50 text-gray-700 font-medium"><i class="fas fa-chart-line text-brand-violet"></i> Progress</button>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-4 md:p-6 overflow-y-auto custom-scrollbar">
+            
+            <!-- HOME SECTION -->
+            <section id="homeSection" class="space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-rose-200 overflow-hidden flex items-center p-2.5">
+                    <span class="bg-brand-pink text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shrink-0 z-10 shadow">
+                        <i class="fas fa-bullhorn animate-pulse"></i> NOTICE
+                    </span>
+                    <div class="overflow-hidden w-full relative ml-2">
+                        <div class="animate-ticker text-xs font-semibold text-gray-700 space-x-8">
+                            <span>🚨 <b>UP Police Constable Exam 2026:</b> Naye practice sets live ho chuke hain!</span>
+                            <span>📝 <b>Total Marks:</b> 300 Marks | 150 Questions | Negative Marking: -0.50</span>
+                            <span>⏱️ <b>Time Duration:</b> 2 Hours (120 Minutes) CBT Practice Mode</span>
+                            <span>🌸 Mission Pari UP Special Test Series me apna daily mock attempt karein aur rank improve karein!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDER WITH 5 IMAGES -->
+                <div class="w-full bg-white rounded-2xl shadow-md p-2 overflow-hidden relative group">
+                    <div id="gallerySlider" class="flex transition-transform duration-700 ease-in-out">
+                        <div class="w-full flex-shrink-0 relative">
+                            <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80" class="w-full h-48 md:h-64 object-cover rounded-xl brightness-90">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent rounded-xl flex flex-col justify-end p-5 text-white">
+                                <span class="bg-brand-pink text-xs px-2 py-0.5 rounded font-bold w-max mb-1">UP POLICE SELECTION TARGET</span>
+                                <h3 class="text-xl md:text-2xl font-bold">Mission Pari UP Mock Test Series 2026</h3>
+                                <p class="text-xs opacity-90">Khaaki wardi ka sapna hoga poora - Standard CBT portal ke sath.</p>
+                            </div>
+                        </div>
+                        <div class="w-full flex-shrink-0 relative">
+                            <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80" class="w-full h-48 md:h-64 object-cover rounded-xl brightness-90">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent rounded-xl flex flex-col justify-end p-5 text-white">
+                                <span class="bg-brand-violet text-xs px-2 py-0.5 rounded font-bold w-max mb-1">CBT EXAM PATTERN</span>
+                                <h3 class="text-xl md:text-2xl font-bold">Real Time Exam Analytics & Accuracy</h3>
+                                <p class="text-xs opacity-90">Instant accuracy check, timer countdown, & solution explanations.</p>
+                            </div>
+                        </div>
+                        <div class="w-full flex-shrink-0 relative">
+                            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80" class="w-full h-48 md:h-64 object-cover rounded-xl brightness-90">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent rounded-xl flex flex-col justify-end p-5 text-white">
+                                <span class="bg-emerald-600 text-xs px-2 py-0.5 rounded font-bold w-max mb-1">DAILY SUBJECT TESTS</span>
+                                <h3 class="text-xl md:text-2xl font-bold">Maths, Hindi, Reasoning & GK</h3>
+                                <p class="text-xs opacity-90">Chapter-wise tests and complete practice sets.</p>
+                            </div>
+                        </div>
+                        <div class="w-full flex-shrink-0 relative">
+                            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80" class="w-full h-48 md:h-64 object-cover rounded-xl brightness-90">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent rounded-xl flex flex-col justify-end p-5 text-white">
+                                <span class="bg-amber-500 text-xs px-2 py-0.5 rounded font-bold w-max mb-1">TIMED PRACTICE MODE</span>
+                                <h3 class="text-xl md:text-2xl font-bold">Build Speed & Time Management</h3>
+                                <p class="text-xs opacity-90">Exam hall environment simulator for UP Police exams.</p>
+                            </div>
+                        </div>
+                        <div class="w-full flex-shrink-0 relative">
+                            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" class="w-full h-48 md:h-64 object-cover rounded-xl brightness-90">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent rounded-xl flex flex-col justify-end p-5 text-white">
+                                <span class="bg-indigo-600 text-xs px-2 py-0.5 rounded font-bold w-max mb-1">SMART DETAILED SOLUTIONS</span>
+                                <h3 class="text-xl md:text-2xl font-bold">Identify Weak Topics Instantly</h3>
+                                <p class="text-xs opacity-90">Review step-by-step explanations after every test.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="prevSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-gray-800 p-2 rounded-full shadow hover:bg-white transition"><i class="fas fa-chevron-left"></i></button>
+                    <button onclick="nextSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-gray-800 p-2 rounded-full shadow hover:bg-white transition"><i class="fas fa-chevron-right"></i></button>
+                </div>
+
+                <div class="space-y-3">
+                    <h2 class="text-lg font-extrabold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-graduation-cap text-brand-pink"></i> UP Police Constable Exam Pattern 2026
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm space-y-1">
+                            <span class="text-xs text-gray-500 font-semibold">Total Questions</span>
+                            <b class="text-xl text-brand-pink block">150 Questions</b>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm space-y-1">
+                            <span class="text-xs text-gray-500 font-semibold">Total Marks</span>
+                            <b class="text-xl text-brand-violet block">300 Marks</b>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm space-y-1">
+                            <span class="text-xs text-gray-500 font-semibold">Exam Duration</span>
+                            <b class="text-xl text-emerald-600 block">120 Minutes</b>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm space-y-1">
+                            <span class="text-xs text-gray-500 font-semibold">Negative Marking</span>
+                            <b class="text-xl text-red-500 block">-0.50 Marks</b>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center py-6 bg-gradient-to-r from-rose-500 to-violet-600 text-white rounded-2xl shadow-lg space-y-3">
+                    <h2 class="text-2xl font-bold">Mock Test Practice Start Karein!</h2>
+                    <p class="text-xs opacity-90 max-w-md mx-auto">Sabhi subjects ke chapter-wise tests aur practice sets available hain.</p>
+                    <button onclick="showSection('subjectsSection')" class="bg-white text-brand-pink px-8 py-3 rounded-full font-bold text-sm shadow-md hover:bg-rose-50 transition">🎯 Go to Subjects</button>
+                </div>
+            </section>
+
+            <!-- SUBJECTS & CHAPTERS SECTION -->
+            <section id="subjectsSection" class="hidden space-y-6">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-layer-group text-brand-pink"></i> Select Subject
+                </h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="subjectsGrid"></div>
+
+                <div id="chaptersContainer" class="hidden space-y-4 mt-6">
+                    <h3 class="text-lg font-bold text-brand-darkViolet" id="selectedSubjectTitle">Chapters</h3>
+                    <div id="chaptersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <div id="setsContainer" class="hidden space-y-4 mt-6">
+                    <h3 class="text-lg font-bold text-brand-pink" id="selectedChapterTitle">Practice Sets</h3>
+                    <div id="setsGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-3"></div>
+                </div>
+            </section>
+
+            <!-- TESTS PANEL -->
+            <section id="testsSection" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800">Attempted & Completed Tests</h2>
+                    <span class="text-xs text-gray-500">Auto-Updated Panel</span>
+                </div>
+                <div id="testsPanelContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </section>
+
+            <!-- PROGRESS SECTION -->
+            <section id="progressSection" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800">Student Analytics & Progress</h2>
+                    <button onclick="clearAllHistory()" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-200">🗑️ Clear All History</button>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-xl border shadow-sm text-center">
+                        <b id="pAttempts" class="text-2xl text-brand-pink block">0</b>
+                        <span class="text-xs text-gray-500">Tests Attempted</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border shadow-sm text-center">
+                        <b id="pLast" class="text-2xl text-brand-violet block">—</b>
+                        <span class="text-xs text-gray-500">Last Score</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border shadow-sm text-center">
+                        <b id="pAcc" class="text-2xl text-emerald-500 block">—</b>
+                        <span class="text-xs text-gray-500">Last Accuracy</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border shadow-sm text-center">
+                        <b class="text-2xl text-indigo-500 block">4</b>
+                        <span class="text-xs text-gray-500">Active Subjects</span>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-md text-gray-700">Attempt History</h3>
+                <div class="bg-white rounded-xl shadow border overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-rose-50 border-b">
+                            <tr>
+                                <th class="p-3">Test Name</th>
+                                <th class="p-3">Score</th>
+                                <th class="p-3">Accuracy</th>
+                                <th class="p-3">Date & Time</th>
+                                <th class="p-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable" class="divide-y">
+                            <tr><td colspan="5" class="p-4 text-center text-gray-400">No test attempted yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TEST ENGINE SECTION -->
+            <section id="testEngineSection" class="hidden bg-white p-4 md:p-6 rounded-2xl shadow-lg space-y-6">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <div>
+                        <h2 class="font-bold text-lg text-brand-darkViolet" id="testTitle">Test Engine</h2>
+                        <p class="text-xs text-gray-500" id="testSubtitle">Loading questions...</p>
+                    </div>
+                    <div class="bg-rose-100 px-3 py-1.5 rounded-lg text-brand-pink font-bold text-sm flex items-center gap-2">
+                        <i class="fas fa-clock"></i> <span id="timer">10:00</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 space-y-4">
+                        <div class="font-semibold text-gray-800 text-base" id="questionText">Q1. Loading question...</div>
+                        <div class="space-y-2" id="optionsContainer"></div>
+                        
+                        <div class="flex flex-wrap gap-2 pt-4 border-t">
+                            <button onclick="clearAns()" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-300">Clear Answer</button>
+                            <button onclick="markReview()" class="bg-amber-400 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-amber-500">🔖 Mark Review</button>
+                            <div class="ml-auto flex gap-2">
+                                <button onclick="prevQ()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-300">Previous</button>
+                                <button onclick="nextQ()" id="nextBtn" class="bg-brand-pink text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-rose-600">Save & Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-rose-50 p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-gray-700">Question Palette</h4>
+                        <p class="text-[11px] text-gray-500">Green = Answered • Yellow = Review</p>
+                        <div class="grid grid-cols-5 gap-2" id="questionPalette"></div>
+                        <button onclick="submitTest(false)" class="w-full bg-emerald-500 text-white py-2.5 rounded-lg font-bold text-sm shadow hover:bg-emerald-600 transition">Submit Test</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESULT & ANALYSIS SECTION -->
+            <section id="resultSection" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-lg border space-y-6">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <div>
+                            <span class="text-xs text-brand-pink font-bold uppercase tracking-wider">Test Report</span>
+                            <h2 class="text-2xl font-extrabold text-gray-800" id="resTestTitle">Result & Performance Analysis</h2>
+                        </div>
+                        <button onclick="retakeCurrentTest()" class="bg-brand-pink text-white px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-rose-600">🔄 Retake Test</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+                        <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+                            <b id="resScore" class="text-xl text-brand-pink block">0/10</b>
+                            <span class="text-xs text-gray-500">Score</span>
+                        </div>
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                            <b id="resCorrect" class="text-xl text-emerald-600 block">0</b>
+                            <span class="text-xs text-gray-500">Correct</span>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-xl border border-red-100">
+                            <b id="resWrong" class="text-xl text-red-500 block">0</b>
+                            <span class="text-xs text-gray-500">Wrong</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-xl border">
+                            <b id="resSkip" class="text-xl text-gray-600 block">0</b>
+                            <span class="text-xs text-gray-500">Skipped</span>
+                        </div>
+                        <div class="bg-violet-50 p-3 rounded-xl border border-violet-100">
+                            <b id="resAcc" class="text-xl text-brand-violet block">0%</b>
+                            <span class="text-xs text-gray-500">Accuracy</span>
+                        </div>
+                        <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                            <b id="resTime" class="text-xl text-amber-600 block">0:00</b>
+                            <span class="text-xs text-gray-500">Time Used</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="toggleSolutions()" class="bg-brand-pink text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow hover:bg-rose-600">📖 View Solutions</button>
+                        <button onclick="showSection('testsSection')" class="bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-300">Go to Tests Panel</button>
+                    </div>
+
+                    <div id="solutionsContainer" class="space-y-4 pt-4 border-t hidden"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- UNIVERSAL BOTTOM NAVIGATION BAR -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-rose-200 grid grid-cols-4 py-2 z-50 shadow-2xl safe-bottom-padding">
+        <button id="nav-homeSection" onclick="showSection('homeSection')" class="flex flex-col items-center justify-center py-1 nav-btn-active active:scale-95 transition">
+            <i class="fas fa-home text-lg mb-0.5"></i> 
+            <span class="text-[11px]">Home</span>
+        </button>
+        <button id="nav-subjectsSection" onclick="showSection('subjectsSection')" class="flex flex-col items-center justify-center py-1 nav-btn-inactive active:scale-95 transition">
+            <i class="fas fa-book text-lg mb-0.5"></i> 
+            <span class="text-[11px]">Subjects</span>
+        </button>
+        <button id="nav-testsSection" onclick="showSection('testsSection')" class="flex flex-col items-center justify-center py-1 nav-btn-inactive active:scale-95 transition">
+            <i class="fas fa-pen-alt text-lg mb-0.5"></i> 
+            <span class="text-[11px]">Tests</span>
+        </button>
+        <button id="nav-progressSection" onclick="showSection('progressSection')" class="flex flex-col items-center justify-center py-1 nav-btn-inactive active:scale-95 transition">
+            <i class="fas fa-chart-line text-lg mb-0.5"></i> 
+            <span class="text-[11px]">Progress</span>
+        </button>
+    </nav>
+
+    <script>
+        // SLIDER AUTOMATION
+        let currentSlide = 0;
+        const slider = document.getElementById('gallerySlider');
+        const totalSlides = 5;
+
+        function updateSlide() { if (slider) slider.style.transform = `translateX(-${currentSlide * 100}%)`; }
+        function nextSlide() { currentSlide = (currentSlide + 1) % totalSlides; updateSlide(); }
+        function prevSlide() { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlide(); }
+        setInterval(nextSlide, 5000);
+
+        // SESSION MANAGEMENT & FIREBASE REGISTRATION
+        const savedSession = JSON.parse(localStorage.getItem('mp_student_session'));
+        if (savedSession) {
+            document.getElementById('studentLoginModal').classList.add('hidden');
+            document.getElementById('headerUserName').innerText = savedSession.name;
+            if (savedSession.avatar) document.getElementById('userAvatar').src = savedSession.avatar;
+        }
+
+        document.getElementById('studentLoginForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('regSubmitBtn');
+            btn.innerText = "Saving to Firebase...";
+            btn.disabled = true;
+
+            const name = document.getElementById('regStuName').value.trim();
+            const phone = document.getElementById('regStuPhone').value.trim();
+            const photoFile = document.getElementById('regStuPhoto').files[0];
+
+            let studentData = { 
+                name: name, 
+                phone: phone, 
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80',
+                registeredAt: new Date().toISOString()
+            };
+
+            const processAndSave = async (data) => {
+                try {
+                    // Firebase Firestore Database me save kar rahe hain
+                    await db.collection("students").doc(data.phone).set(data, { merge: true });
+                    console.log("Successfully saved in Firebase Firestore!");
+                } catch (error) {
+                    console.error("Firebase Firestore error:", error);
+                } finally {
+                    applyUserSession(data);
+                    btn.innerText = "ENTER PORTAL 🚀";
+                    btn.disabled = false;
+                }
+            };
+
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    studentData.avatar = event.target.result;
+                    await processAndSave(studentData);
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                await processAndSave(studentData);
+            }
+        };
+
+        function applyUserSession(data) {
+            localStorage.setItem('mp_student_session', JSON.stringify(data));
+            document.getElementById('headerUserName').innerText = data.name;
+            document.getElementById('userAvatar').src = data.avatar;
+            document.getElementById('studentLoginModal').classList.add('hidden');
+        }
+
+        function logoutStudent() {
+            if(confirm("Kya aap Logout karna chahte hain? Dubara login/registration form open ho jayega.")) {
+                localStorage.removeItem('mp_student_session');
+                location.reload();
+            }
+        }
+
+        // SUBJECTS & CHAPTERS ROUTING
+        const subjectsData = [
+            { id: 'maths', name: 'General Maths', icon: 'fa-calculator', color: 'bg-rose-500' },
+            { id: 'hindi', name: 'General Hindi', icon: 'fa-language', color: 'bg-violet-500' },
+            { id: 'reasoning', name: 'Reasoning', icon: 'fa-brain', color: 'bg-pink-500' },
+            { id: 'gk', name: 'GK / GS', icon: 'fa-globe', color: 'bg-indigo-500' }
+        ];
+
+        function renderSubjects() {
+            const grid = document.getElementById('subjectsGrid');
+            grid.innerHTML = subjectsData.map(s => `
+                <div onclick="selectSubject('${s.id}', '${s.name}')" class="cursor-pointer bg-white p-4 rounded-xl shadow-md border hover:border-brand-pink transition text-center space-y-2">
+                    <div class="${s.color} text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl shadow">
+                        <i class="fas ${s.icon}"></i>
+                    </div>
+                    <div class="font-bold text-gray-800">${s.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectSubject(subId, name) {
+            document.getElementById('chaptersContainer').classList.remove('hidden');
+            document.getElementById('setsContainer').classList.add('hidden');
+            document.getElementById('selectedSubjectTitle').innerText = `${name} - Chapters`;
+            const grid = document.getElementById('chaptersGrid');
+            
+            grid.innerHTML = `
+                <div onclick="selectChapter('${subId}', 1, 'Chapter 1')" class="bg-white p-3 rounded-lg border hover:bg-rose-50 cursor-pointer flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">Chapter 1</span>
+                    <i class="fas fa-chevron-right text-gray-400 text-sm"></i>
+                </div>
+                <div onclick="selectChapter('${subId}', 2, 'Chapter 2')" class="bg-white p-3 rounded-lg border hover:bg-rose-50 cursor-pointer flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">Chapter 2</span>
+                    <i class="fas fa-chevron-right text-gray-400 text-sm"></i>
+                </div>
+            `;
+        }
+
+        function selectChapter(subId, chapNum, title) {
+            document.getElementById('setsContainer').classList.remove('hidden');
+            document.getElementById('selectedChapterTitle').innerText = `Chapter ${chapNum} (${title}) - Practice Sets`;
+            const grid = document.getElementById('setsGrid');
+            
+            grid.innerHTML = Array.from({length: 5}, (_, i) => i + 1).map(setNum => {
+                const fullKey = `${subId}_chap${chapNum}_set${setNum}`;
+                return `
+                    <button onclick="startTestEngine('${fullKey}', '${subId}', ${chapNum}, ${setNum})" class="bg-white border-2 border-brand-rose hover:bg-brand-pink hover:text-white p-3 rounded-xl text-center font-bold text-brand-pink transition shadow-sm">
+                        Set 0${setNum}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // TEST ENGINE LOGIC
+        let activeFullKey = '';
+        let activeSubId = '';
+        let activeChapNum = 1;
+        let activeSetNum = 1;
+
+        let Q = [];
+        let totalSec = 600;
+        let currIdx = 0;
+        let ans = [];
+        let rev = [];
+        let timer = null;
+        let submitted = false;
+
+        function startTestEngine(fullKey, subId, chapNum, setNum) {
+            if (!window.MOCK_DATA || !window.MOCK_DATA[fullKey]) { 
+                alert(`Test Data not found for key: "${fullKey}". Please check your JS file!`); 
+                return; 
+            }
+            
+            let completedTests = JSON.parse(localStorage.getItem('mp_completed_tests') || '{}');
+            if (completedTests[fullKey]) {
+                displaySavedResult(completedTests[fullKey]);
+                showSection('resultSection');
+                return;
+            }
+
+            activeFullKey = fullKey;
+            activeSubId = subId;
+            activeChapNum = chapNum;
+            activeSetNum = setNum;
+
+            const data = window.MOCK_DATA[fullKey];
+            Q = data.questions;
+            totalSec = data.timeInMinutes * 60;
+            
+            currIdx = 0;
+            ans = Array(Q.length).fill(null);
+            rev = Array(Q.length).fill(false);
+            submitted = false;
+
+            document.getElementById('testTitle').innerText = `${data.title}`;
+            document.getElementById('testSubtitle').innerText = `${Q.length} Questions | ${data.timeInMinutes} Mins`;
+
+            showSection('testEngineSection');
+            
+            clearInterval(timer);
+            timer = setInterval(() => {
+                totalSec--;
+                clock();
+                if (totalSec <= 0) submitTest(true);
+            }, 1000);
+
+            renderQ();
+        }
+
+        function retakeCurrentTest() {
+            let completedTests = JSON.parse(localStorage.getItem('mp_completed_tests') || '{}');
+            delete completedTests[activeFullKey];
+            localStorage.setItem('mp_completed_tests', JSON.stringify(completedTests));
+
+            renderTestsPanel();
+            startTestEngine(activeFullKey, activeSubId, activeChapNum, activeSetNum);
+        }
+
+        function clock() {
+            let m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+            let s = String(totalSec % 60).padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }
+
+        function renderQ() {
+            let q = Q[currIdx];
+            document.getElementById('questionText').innerText = `Q${currIdx + 1}. ${q[0]}`;
+            
+            let container = document.getElementById('optionsContainer');
+            container.innerHTML = q[1].map((opt, k) => `
+                <label class="flex items-center gap-3 p-3 border rounded-xl hover:bg-rose-50 cursor-pointer text-sm font-medium transition ${ans[currIdx] === k ? 'border-brand-pink bg-rose-50' : ''}">
+                    <input type="radio" name="opt" ${ans[currIdx] === k ? 'checked' : ''} onchange="selectOption(${k})" class="accent-rose-500">
+                    <span><b>${String.fromCharCode(65 + k)})</b> ${opt}</span>
+                </label>
+            `).join('');
+
+            document.getElementById('nextBtn').innerText = currIdx === Q.length - 1 ? 'Finish →' : 'Save & Next';
+            renderPalette();
+            clock();
+        }
+
+        function selectOption(k) { ans[currIdx] = k; renderQ(); }
+        function renderPalette() {
+            let palette = document.getElementById('questionPalette');
+            palette.innerHTML = Q.map((_, k) => {
+                let cls = 'pnum';
+                if (ans[k] !== null) cls += ' ans';
+                if (rev[k]) cls += ' rev';
+                if (k === currIdx) cls += ' cur';
+                return `<button onclick="jumpQ(${k})" class="${cls}">${k + 1}</button>`;
+            }).join('');
+        }
+
+        function jumpQ(k) { currIdx = k; renderQ(); }
+        function nextQ() { if (currIdx < Q.length - 1) { currIdx++; renderQ(); } else submitTest(false); }
+        function prevQ() { if (currIdx > 0) { currIdx--; renderQ(); } }
+        function clearAns() { ans[currIdx] = null; renderQ(); }
+        function markReview() { rev[currIdx] = !rev[currIdx]; renderPalette(); }
+
+        // SUBMIT TEST FUNCTION
+        function submitTest(auto = false) {
+            if (submitted) return;
+            if (!auto && !confirm('Kya aap test submit karna chahte hain?')) return;
+            
+            submitted = true;
+            clearInterval(timer);
+
+            let mockItem = window.MOCK_DATA[activeFullKey] || { timeInMinutes: 10, title: 'Test' };
+
+            let correct = ans.reduce((n, a, k) => n + (Q[k] && a === Q[k][2] ? 1 : 0), 0);
+            let attempt = ans.filter(x => x !== null && x !== undefined).length;
+            let wrong = attempt - correct;
+            let skip = Q.length - attempt;
+            let timeUsed = Math.max(0, (mockItem.timeInMinutes * 60) - totalSec);
+            let acc = attempt ? Math.round((correct / attempt) * 100) : 0;
+
+            let resultObj = {
+                fullKey: activeFullKey,
+                subId: activeSubId,
+                chapNum: activeChapNum,
+                setNum: activeSetNum,
+                title: mockItem.title,
+                score: `${correct}/${Q.length}`,
+                correct, wrong, skip, acc,
+                timeStr: `${Math.floor(timeUsed / 60)}:${String(timeUsed % 60).padStart(2, '0')}`,
+                date: new Date().toLocaleString(),
+                questions: Q,
+                userAnswers: ans
+            };
+
+            let completedTests = JSON.parse(localStorage.getItem('mp_completed_tests') || '{}');
+            completedTests[activeFullKey] = resultObj;
+            localStorage.setItem('mp_completed_tests', JSON.stringify(completedTests));
+
+            let hist = JSON.parse(localStorage.getItem('upHistory') || '[]');
+            hist.unshift({
+                id: Date.now(),
+                test: resultObj.title,
+                score: resultObj.score,
+                acc: acc + '%',
+                date: resultObj.date
+            });
+            localStorage.setItem('upHistory', JSON.stringify(hist));
+
+            displaySavedResult(resultObj);
+            showSection('resultSection');
+        }
+
+        function displaySavedResult(res) {
+            document.getElementById('resTestTitle').innerText = res.title;
+            document.getElementById('resScore').innerText = res.score;
+            document.getElementById('resCorrect').innerText = res.correct;
+            document.getElementById('resWrong').innerText = res.wrong;
+            document.getElementById('resSkip').innerText = res.skip;
+            document.getElementById('resAcc').innerText = res.acc + '%';
+            document.getElementById('resTime').innerText = res.timeStr;
+
+            renderSolutionsHTML(res.questions, res.userAnswers);
+        }
+
+        function renderSolutionsHTML(questions, userAns) {
+            let container = document.getElementById('solutionsContainer');
+            container.innerHTML = '<h3 class="font-bold text-lg text-gray-800 border-b pb-2">Detailed Solutions</h3>' + questions.map((q, k) => {
+                let ok = userAns[k] === q[2];
+                let userAnsText = (userAns[k] === null || userAns[k] === undefined) ? 'Not attempted' : String.fromCharCode(65 + userAns[k]) + ') ' + q[1][userAns[k]];
+                return `
+                    <div class="p-4 rounded-xl border ${ok ? 'bg-emerald-50/50 border-emerald-200' : 'bg-red-50/50 border-red-200'} space-y-2">
+                        <div class="flex justify-between items-center font-bold text-sm">
+                            <span>Q${k + 1}. ${q[0]}</span>
+                            <span class="${ok ? 'text-emerald-600' : 'text-red-500'}">${ok ? '✓ Correct' : '✗ Incorrect / Skipped'}</span>
+                        </div>
+                        <div class="text-xs text-gray-600 space-y-1">
+                            <p><b>Correct Answer:</b> ${String.fromCharCode(65 + q[2])}) ${q[1][q[2]]}</p>
+                            <p><b>Your Answer:</b> ${userAnsText}</p>
+                            <p class="text-gray-500 mt-1"><b>${q[3]}</b></p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleSolutions() {
+            document.getElementById('solutionsContainer').classList.toggle('hidden');
+        }
+
+        function renderTestsPanel() {
+            let container = document.getElementById('testsPanelContainer');
+            let completedTests = JSON.parse(localStorage.getItem('mp_completed_tests') || '{}');
+            let keys = Object.keys(completedTests);
+
+            if (keys.length === 0) {
+                container.innerHTML = `<div class="col-span-2 bg-white p-6 rounded-xl border text-center text-gray-400">Abhi koi test attempt nahi kiya gaya hai. Subjects tab se test start karein.</div>`;
+                return;
+            }
+
+            container.innerHTML = keys.map(k => {
+                let item = completedTests[k];
+                return `
+                    <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800">${item.title}</h3>
+                            <span class="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Completed</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs bg-rose-50/50 p-2 rounded-xl">
+                            <div><b class="text-brand-pink block">${item.score}</b>Score</div>
+                            <div><b class="text-brand-violet block">${item.acc}%</b>Accuracy</div>
+                            <div><b class="text-gray-600 block">${item.timeStr}</b>Time Used</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="viewSavedTestResult('${k}')" class="flex-1 bg-brand-pink text-white py-2 rounded-lg text-xs font-bold shadow hover:bg-rose-600">View Report</button>
+                            <button onclick="startTestEngine('${k}', '${item.subId}', ${item.chapNum}, ${item.setNum})" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-gray-300">Retake</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewSavedTestResult(key) {
+            let completedTests = JSON.parse(localStorage.getItem('mp_completed_tests') || '{}');
+            if (completedTests[key]) {
+                activeFullKey = key;
+                displaySavedResult(completedTests[key]);
+                showSection('resultSection');
+            }
+        }
+
+        function renderPerf() {
+            let h = JSON.parse(localStorage.getItem('upHistory') || '[]');
+            document.getElementById('pAttempts').innerText = h.length;
+            document.getElementById('pLast').innerText = h[0]?.score || '—';
+            document.getElementById('pAcc').innerText = h[0]?.acc || '—';
+            
+            let tbody = document.getElementById('historyTable');
+            tbody.innerHTML = h.length ? h.map((x, idx) => `
+                <tr class="hover:bg-rose-50/50">
+                    <td class="p-3 font-semibold">${x.test}</td>
+                    <td class="p-3">${x.score}</td>
+                    <td class="p-3 text-emerald-600 font-bold">${x.acc}</td>
+                    <td class="p-3 text-gray-400 text-xs">${x.date}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteSingleHistory(${idx})" class="text-red-500 hover:text-red-700 text-xs font-bold">Delete</button>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="p-4 text-center text-gray-400">No test attempted yet.</td></tr>';
+        }
+
+        function deleteSingleHistory(index) {
+            let h = JSON.parse(localStorage.getItem('upHistory') || '[]');
+            h.splice(index, 1);
+            localStorage.setItem('upHistory', JSON.stringify(h));
+            renderPerf();
+        }
+
+        function clearAllHistory() {
+            if (confirm('Kya aap sari attempt history clear karna chahte hain?')) {
+                localStorage.removeItem('upHistory');
+                renderPerf();
+            }
+        }
+
+        // NAVIGATION & TOGGLES
+        function showSection(id) {
+            ['homeSection', 'subjectsSection', 'testsSection', 'progressSection', 'testEngineSection', 'resultSection'].forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+
+            const navIds = ['homeSection', 'subjectsSection', 'testsSection', 'progressSection'];
+            navIds.forEach(navId => {
+                const btn = document.getElementById(`nav-${navId}`);
+                if (btn) {
+                    if (navId === id) {
+                        btn.className = "flex flex-col items-center justify-center py-1 nav-btn-active active:scale-95 transition";
+                    } else {
+                        btn.className = "flex flex-col items-center justify-center py-1 nav-btn-inactive active:scale-95 transition";
+                    }
+                }
+            });
+
+            if (id === 'testsSection') renderTestsPanel();
+            if (id === 'progressSection') renderPerf();
+        }
+
+        renderSubjects();
+    </script>
+</body>
+</html>
