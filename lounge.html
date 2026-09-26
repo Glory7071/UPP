@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Mission Pari UP | Student Lounge & DMs</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -59,23 +59,36 @@
     </script>
 
     <style>
+        /* Mobile Dynamic Viewport Height Fix */
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
         .chat-bg {
             background-color: #efeae2;
             background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
             background-size: 16px 16px;
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .bubble-me { border-radius: 12px 12px 2px 12px; }
         .bubble-other { border-radius: 12px 12px 12px 2px; }
+        
+        /* Safe Area Padding for iPhone & Modern Androids */
+        .safe-bottom {
+            padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
+        }
     </style>
 </head>
-<body class="bg-slate-100 text-gray-800 font-sans h-screen flex flex-col justify-between overflow-hidden">
+<body class="bg-slate-100 text-gray-800 font-sans flex flex-col justify-between overflow-hidden">
 
     <!-- HEADER -->
-    <header class="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center shadow-sm shrink-0 z-10">
+    <header class="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center shadow-sm shrink-0 z-30">
         <div class="flex items-center gap-3">
-            <a href="index.html" class="p-2 text-gray-600 hover:text-brand-pink hover:bg-rose-50 rounded-full transition">
+            <a href="fresh_2.html" class="p-2 text-gray-600 hover:text-brand-pink hover:bg-rose-50 rounded-full transition">
                 <i class="fas fa-arrow-left text-lg"></i>
             </a>
             <div class="relative">
@@ -101,17 +114,18 @@
     </header>
 
     <!-- TABS BAR -->
-    <div class="bg-white border-b border-gray-200 flex justify-around text-xs font-bold text-gray-600 shrink-0 z-10">
+    <div class="bg-white border-b border-gray-200 flex justify-around text-xs font-bold text-gray-600 shrink-0 z-30">
         <button id="tabLoungeBtn" onclick="switchTab('lounge')" class="flex-1 py-2.5 border-b-2 border-brand-pink text-brand-pink text-center flex items-center justify-center gap-1.5">
             <i class="fas fa-users text-sm"></i> Group Lounge
         </button>
-        <button id="tabDmBtn" onclick="switchTab('dms')" class="flex-1 py-2.5 border-b-2 border-transparent hover:text-brand-pink text-center flex items-center justify-center gap-1.5">
+        <button id="tabDmBtn" onclick="switchTab('dms')" class="flex-1 py-2.5 border-b-2 border-transparent hover:text-brand-pink text-center flex items-center justify-center gap-1.5 relative">
             <i class="fas fa-user-friends text-sm"></i> Private DMs
+            <span id="unreadDmBadge" class="hidden absolute top-2 right-4 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
         </button>
     </div>
 
     <!-- MAIN CHAT CONTAINER -->
-    <div class="flex-1 relative overflow-hidden flex flex-col">
+    <div class="flex-1 relative overflow-hidden flex flex-col min-h-0">
         
         <!-- DM PANEL (WhatsApp Style Persistent List) -->
         <div id="dmListPanel" class="hidden absolute inset-0 bg-white z-20 p-4 overflow-y-auto space-y-3">
@@ -154,18 +168,18 @@
         </div>
     </div>
 
-    <!-- INPUT FOOTER -->
-    <footer class="bg-white border-t border-gray-200 p-2.5 shrink-0 z-10">
+    <!-- INPUT FOOTER (Fixed for Mobile Screens) -->
+    <footer class="bg-white border-t border-gray-200 px-3 py-2 shrink-0 z-30 safe-bottom">
         <form id="chatForm" class="flex items-center gap-2 max-w-4xl mx-auto">
-            <label for="chatImgInput" class="p-2.5 text-gray-500 hover:text-brand-pink hover:bg-rose-50 rounded-full cursor-pointer transition">
+            <label for="chatImgInput" class="p-2 text-gray-500 hover:text-brand-pink hover:bg-rose-50 rounded-full cursor-pointer transition shrink-0">
                 <i class="fas fa-paperclip text-lg"></i>
             </label>
             <input type="file" id="chatImgInput" accept="image/*" class="hidden" onchange="handleImageSelect(event)">
 
-            <input type="text" id="msgInput" placeholder="Type a message..." class="flex-1 px-4 py-2.5 bg-gray-100 border-none rounded-full text-sm outline-none focus:ring-2 focus:ring-rose-400 transition">
+            <input type="text" id="msgInput" placeholder="Type a message..." class="flex-1 px-4 py-2 bg-gray-100 border-none rounded-full text-sm outline-none focus:ring-2 focus:ring-rose-400 transition min-w-0">
 
-            <button type="submit" id="sendBtn" class="bg-brand-pink text-white w-10 h-10 rounded-full flex items-center justify-center shadow hover:bg-rose-600 transition shrink-0">
-                <i class="fas fa-paper-plane text-sm"></i>
+            <button type="submit" id="sendBtn" class="bg-brand-pink text-white w-9 h-9 rounded-full flex items-center justify-center shadow hover:bg-rose-600 transition shrink-0">
+                <i class="fas fa-paper-plane text-xs"></i>
             </button>
         </form>
     </footer>
@@ -210,7 +224,7 @@
         let activeReplyData = null;
         let unsubscribeRealtime = null;
 
-        // Initialize Lounge & Recent Chats
+        // Initialize Lounge & Dual Sync Recent Chats
         listenToRoom('group_lounge');
         renderRecentChatList();
         syncRecentChatsFromFirestore();
@@ -222,7 +236,7 @@
 
             if (mode === 'lounge') {
                 loungeBtn.className = "flex-1 py-2.5 border-b-2 border-brand-pink text-brand-pink text-center flex items-center justify-center gap-1.5";
-                dmBtn.className = "flex-1 py-2.5 border-b-2 border-transparent hover:text-brand-pink text-center flex items-center justify-center gap-1.5";
+                dmBtn.className = "flex-1 py-2.5 border-b-2 border-transparent hover:text-brand-pink text-center flex items-center justify-center gap-1.5 relative";
                 dmPanel.classList.add('hidden');
                 
                 currentPeerPhone = null;
@@ -230,8 +244,9 @@
                 document.getElementById('chatHeaderSubtitle').innerText = 'Active Community';
                 listenToRoom('group_lounge');
             } else {
-                dmBtn.className = "flex-1 py-2.5 border-b-2 border-brand-pink text-brand-pink text-center flex items-center justify-center gap-1.5";
+                dmBtn.className = "flex-1 py-2.5 border-b-2 border-brand-pink text-brand-pink text-center flex items-center justify-center gap-1.5 relative";
                 loungeBtn.className = "flex-1 py-2.5 border-b-2 border-transparent hover:text-brand-pink text-center flex items-center justify-center gap-1.5";
+                document.getElementById('unreadDmBadge').classList.add('hidden');
                 renderRecentChatList();
                 dmPanel.classList.remove('hidden');
             }
@@ -313,7 +328,7 @@
                 });
         }
 
-        // --- WHATSAPP persistant recent chats system ---
+        // --- DUAL SYNC PERSISTENT CHATS LOGIC ---
         function getSavedRecentChats() {
             try {
                 const data = localStorage.getItem(`mp_recent_chats_${currentSession.phone}`);
@@ -323,8 +338,10 @@
             }
         }
 
-        function saveRecentChatLocal(targetPhone, targetName, targetAvatar, lastMsg) {
-            if (!targetPhone) return;
+        async function saveRecentChatBothUsers(targetPhone, targetName, targetAvatar, lastMsg) {
+            if (!targetPhone || !currentSession.phone) return;
+
+            // 1. Local update for immediate UI feel
             const chats = getSavedRecentChats();
             chats[targetPhone] = {
                 phone: targetPhone,
@@ -336,17 +353,33 @@
             localStorage.setItem(`mp_recent_chats_${currentSession.phone}`, JSON.stringify(chats));
             renderRecentChatList();
 
-            // Background Sync to Firestore
+            // 2. Dual Firestore Sync (Sender & Receiver Both)
             try {
-                db.collection('students').doc(currentSession.phone)
+                const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+                // Sender's Record
+                await db.collection('students').doc(currentSession.phone)
                   .collection('recent_chats').doc(targetPhone).set({
                       phone: targetPhone,
                       name: targetName || targetPhone,
                       avatar: targetAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80',
                       lastMessage: lastMsg || 'Tap to chat',
-                      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                      updatedAt: timestamp
                   }, { merge: true });
-            } catch(e) {}
+
+                // Receiver's Record (Taaki samne wale ke paas bhi persistent list me aaye)
+                await db.collection('students').doc(targetPhone)
+                  .collection('recent_chats').doc(currentSession.phone).set({
+                      phone: currentSession.phone,
+                      name: currentSession.name || 'Student',
+                      avatar: currentSession.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80',
+                      lastMessage: lastMsg || 'Tap to chat',
+                      updatedAt: timestamp
+                  }, { merge: true });
+
+            } catch(e) {
+                console.error("Dual Sync Error:", e);
+            }
         }
 
         function renderRecentChatList() {
@@ -406,9 +439,12 @@
                   .onSnapshot(snapshot => {
                       if (!snapshot || snapshot.empty) return;
                       const chats = getSavedRecentChats();
+                      let hasNew = false;
+
                       snapshot.forEach(doc => {
                           const data = doc.data();
                           if (data && data.phone) {
+                              if(!chats[data.phone]) hasNew = true;
                               chats[data.phone] = {
                                   phone: data.phone,
                                   name: data.name || data.phone,
@@ -418,8 +454,13 @@
                               };
                           }
                       });
+                      
                       localStorage.setItem(`mp_recent_chats_${currentSession.phone}`, JSON.stringify(chats));
                       renderRecentChatList();
+
+                      if(hasNew && document.getElementById('dmListPanel').classList.contains('hidden')) {
+                          document.getElementById('unreadDmBadge').classList.remove('hidden');
+                      }
                   }, err => console.log("Firestore sync notice:", err));
             } catch(e) {}
         }
@@ -511,7 +552,7 @@
                 await db.collection('lounge_messages').add(newMsg);
 
                 if (currentPeerPhone) {
-                    saveRecentChatLocal(currentPeerPhone, currentPeerName, currentPeerAvatar, text || '📷 Photo Attachment');
+                    await saveRecentChatBothUsers(currentPeerPhone, currentPeerName, currentPeerAvatar, text || '📷 Photo Attachment');
                 }
 
                 textInput.value = '';
@@ -575,7 +616,6 @@
                         </div>
                     `;
                 } else {
-                    // Fast start option if student not in db
                     container.innerHTML = `
                         <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border">
                             <div>
@@ -593,7 +633,7 @@
 
         function startPrivateDm(peerPhone, peerName, peerAvatar) {
             closeFindStudentModal();
-            saveRecentChatLocal(peerPhone, peerName, peerAvatar, 'Chat Started');
+            saveRecentChatBothUsers(peerPhone, peerName, peerAvatar, 'Chat Started');
             openPrivateDmFromList(peerPhone, peerName, peerAvatar);
         }
 
