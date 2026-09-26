@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Mission Pari UP | Direct DM Lounge</title>
+    <title>Mission Pari UP | Student Lounge & DMs</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -59,6 +59,7 @@
     </script>
 
     <style>
+        /* Mobile Dynamic Viewport Height Fix */
         html, body {
             height: 100%;
             height: 100dvh;
@@ -75,6 +76,8 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .bubble-me { border-radius: 12px 12px 2px 12px; }
         .bubble-other { border-radius: 12px 12px 12px 2px; }
+        
+        /* Safe Area Padding for iPhone & Modern Androids */
         .safe-bottom {
             padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
         }
@@ -88,23 +91,23 @@
             <a href="fresh_2.html" class="p-2 text-gray-600 hover:text-brand-pink hover:bg-rose-50 rounded-full transition">
                 <i class="fas fa-arrow-left text-lg"></i>
             </a>
-            <div class="relative cursor-pointer" onclick="changeMyPhoneNumber()" title="Click to edit registered phone number">
+            <div class="relative">
                 <img id="loungeUserAvatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80" class="w-10 h-10 rounded-full border border-rose-300 object-cover">
                 <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
             </div>
             <div>
                 <h1 id="chatHeaderTitle" class="font-bold text-sm md:text-base text-gray-800 leading-tight">Group Lounge</h1>
                 <p id="chatHeaderSubtitle" class="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> <span id="userMyPhoneLabel">Loading...</span>
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Active Community
                 </p>
             </div>
         </div>
 
-        <div class="flex items-center gap-1.5">
-            <button onclick="changeMyPhoneNumber()" class="px-2 py-1 text-[11px] bg-rose-50 text-brand-pink font-bold rounded-lg border border-rose-200 hover:bg-rose-100">
-                <i class="fas fa-id-card"></i> My ID
+        <div class="flex items-center gap-2">
+            <button onclick="requestNotificationPermission()" class="p-2 text-amber-500 hover:bg-amber-50 rounded-full" title="Enable Notifications">
+                <i class="fas fa-bell"></i>
             </button>
-            <button onclick="clearChatForMe()" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full" title="Clear Chat">
+            <button onclick="clearChatForMe()" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full" title="Clear Chat (For Me)">
                 <i class="fas fa-broom"></i>
             </button>
         </div>
@@ -117,7 +120,7 @@
         </button>
         <button id="tabDmBtn" onclick="switchTab('dms')" class="flex-1 py-2.5 border-b-2 border-transparent hover:text-brand-pink text-center flex items-center justify-center gap-1.5 relative">
             <i class="fas fa-user-friends text-sm"></i> Private DMs
-            <span id="unreadDmBadge" class="hidden absolute top-2 right-4 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
+            <span id="unreadDmBadge" class="hidden absolute top-2 right-4 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
         </button>
     </div>
 
@@ -127,16 +130,13 @@
         <!-- DM PANEL (WhatsApp Style Persistent List) -->
         <div id="dmListPanel" class="hidden absolute inset-0 bg-white z-20 p-4 overflow-y-auto space-y-3">
             <div class="flex justify-between items-center mb-2">
-                <div>
-                    <h2 class="font-bold text-sm text-gray-800">Direct Messages</h2>
-                    <p class="text-[10px] text-gray-400">Jo bhi aapko mssg karega wo yahan aayega</p>
-                </div>
-                <button onclick="openFindStudentModal()" class="bg-brand-pink text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow hover:bg-rose-600 transition flex items-center gap-1.5">
-                    <i class="fas fa-plus"></i> Start Chat
+                <h2 class="font-bold text-sm text-gray-700">Direct Messages</h2>
+                <button onclick="openFindStudentModal()" class="bg-brand-pink text-white text-xs px-3.5 py-1.5 rounded-xl font-bold shadow hover:bg-rose-600 transition flex items-center gap-1.5">
+                    <i class="fas fa-user-plus"></i> New Chat
                 </button>
             </div>
             <div id="dmRoomsContainer" class="space-y-2">
-                <!-- Dynamic DM List -->
+                <!-- Recent chats rendered dynamically -->
             </div>
         </div>
 
@@ -188,17 +188,16 @@
     <div id="findStudentModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-gray-800 text-sm">Send Message To Mobile Number</h3>
+                <h3 class="font-bold text-gray-800 text-sm">Start Private Chat</h3>
                 <button onclick="closeFindStudentModal()" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div class="space-y-3">
-                <label class="text-[11px] text-gray-500 block">Jiss number se samne wale ki ID bani hai wo yahan dalein:</label>
                 <input type="tel" id="searchPhoneInput" placeholder="Enter 10-digit Mobile Number" class="w-full p-2.5 bg-gray-50 border rounded-xl text-sm outline-none focus:border-brand-pink">
                 <button onclick="searchStudentByPhone()" class="w-full bg-brand-pink text-white py-2.5 rounded-xl font-bold text-xs shadow hover:bg-rose-600">
-                    Open Chat Window 💬
+                    Search Student 🔍
                 </button>
             </div>
-            <div id="searchResults" class="pt-1"></div>
+            <div id="searchResults" class="pt-2"></div>
         </div>
     </div>
 
@@ -209,29 +208,13 @@
     </div>
 
     <script>
-        // Session setup
-        let currentSession = JSON.parse(localStorage.getItem('mp_student_session'));
-        if (!currentSession || !currentSession.phone || currentSession.phone.startsWith('user_')) {
-            const phonePrompt = prompt("Aapka Mobile Number enter karein (Taaki DMs directly aapke paas aayein):", "9876543210");
-            const cleanPhone = phonePrompt ? phonePrompt.trim() : '9876543210';
-            currentSession = {
-                name: 'Gaurav Yadav',
-                phone: cleanPhone,
-                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'
-            };
-            localStorage.setItem('mp_student_session', JSON.stringify(currentSession));
-        }
+        const currentSession = JSON.parse(localStorage.getItem('mp_student_session')) || {
+            name: 'Gaurav Yadav',
+            phone: 'user_' + Math.floor(100000 + Math.random() * 900000),
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'
+        };
 
         document.getElementById('loungeUserAvatar').src = currentSession.avatar;
-        document.getElementById('userMyPhoneLabel').innerText = `My ID: ${currentSession.phone}`;
-
-        // DB Student document auto register
-        db.collection('students').doc(currentSession.phone).set({
-            name: currentSession.name,
-            phone: currentSession.phone,
-            avatar: currentSession.avatar,
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
 
         let activeRoomId = 'group_lounge';
         let currentPeerPhone = null;
@@ -241,28 +224,10 @@
         let activeReplyData = null;
         let unsubscribeRealtime = null;
 
-        // Initialize Lounge & Sync Realtime DMs
+        // Initialize Lounge & Dual Sync Recent Chats
         listenToRoom('group_lounge');
         renderRecentChatList();
         syncRecentChatsFromFirestore();
-
-        function changeMyPhoneNumber() {
-            const newPhone = prompt("Apna registered mobile number update karein:", currentSession.phone);
-            if (newPhone && newPhone.trim().length >= 10) {
-                currentSession.phone = newPhone.trim();
-                localStorage.setItem('mp_student_session', JSON.stringify(currentSession));
-                document.getElementById('userMyPhoneLabel').innerText = `My ID: ${currentSession.phone}`;
-                
-                db.collection('students').doc(currentSession.phone).set({
-                    name: currentSession.name,
-                    phone: currentSession.phone,
-                    avatar: currentSession.avatar
-                }, { merge: true });
-
-                syncRecentChatsFromFirestore();
-                alert("Mobile Number updated to " + currentSession.phone);
-            }
-        }
 
         function switchTab(mode) {
             const loungeBtn = document.getElementById('tabLoungeBtn');
@@ -276,7 +241,7 @@
                 
                 currentPeerPhone = null;
                 document.getElementById('chatHeaderTitle').innerText = 'Group Lounge';
-                document.getElementById('chatHeaderSubtitle').innerText = `My ID: ${currentSession.phone}`;
+                document.getElementById('chatHeaderSubtitle').innerText = 'Active Community';
                 listenToRoom('group_lounge');
             } else {
                 dmBtn.className = "flex-1 py-2.5 border-b-2 border-brand-pink text-brand-pink text-center flex items-center justify-center gap-1.5 relative";
@@ -298,34 +263,30 @@
             const clearedAt = Number(localStorage.getItem(`clearedAt_${activeRoomId}_${currentSession.phone}`)) || 0;
 
             unsubscribeRealtime = db.collection('lounge_messages')
-                .where('roomId', '==', activeRoomId)
+                .orderBy('createdAt', 'asc')
                 .onSnapshot(snapshot => {
                     const chatBox = document.getElementById('chatBox');
                     chatBox.innerHTML = `<div class="text-center my-2"><span class="bg-white/90 text-gray-500 text-[11px] px-3 py-1 rounded-full shadow-sm border">🔒 Protected Discussion</span></div>`;
 
-                    let docs = [];
-                    snapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
+                    snapshot.forEach(doc => {
+                        const msg = doc.data();
+                        const msgId = doc.id;
 
-                    // Sort by time safely
-                    docs.sort((a,b) => {
-                        const tA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : Date.now()) : Date.now();
-                        const tB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : Date.now()) : Date.now();
-                        return tA - tB;
-                    });
+                        const msgRoomId = msg.roomId || 'group_lounge';
+                        if (msgRoomId !== activeRoomId) return;
 
-                    docs.forEach(msg => {
-                        const msgTimeMillis = msg.createdAt ? (msg.createdAt.toDate ? msg.createdAt.toDate().getTime() : Date.now()) : Date.now();
+                        const msgTimeMillis = msg.createdAt ? msg.createdAt.toDate().getTime() : Date.now();
                         if (msgTimeMillis <= clearedAt) return;
 
                         const isMe = msg.phone === currentSession.phone;
-                        const msgTime = msg.createdAt && msg.createdAt.toDate ? new Date(msg.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+                        const msgTime = msg.createdAt ? new Date(msg.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
 
                         const messageHTML = `
                             <div class="flex gap-2 ${isMe ? 'justify-end' : 'justify-start'} items-end group my-1.5">
                                 ${!isMe ? `<img src="${msg.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}" class="w-7 h-7 rounded-full object-cover shrink-0 mb-1 border">` : ''}
 
                                 <div class="max-w-[80%] sm:max-w-[65%] space-y-1">
-                                    <div class="p-2.5 text-xs shadow-sm relative ${isMe ? 'bg-brand-chatGreen text-gray-800 bubble-me' : 'bg-white text-gray-800 bubble-other border border-gray-100'}" onclick="setReplyTarget('${msg.id}', '${escapeHtml(msg.senderName || 'Student')}', '${escapeHtml(msg.text || 'Photo')}')">
+                                    <div class="p-2.5 text-xs shadow-sm relative ${isMe ? 'bg-brand-chatGreen text-gray-800 bubble-me' : 'bg-white text-gray-800 bubble-other border border-gray-100'}" onclick="setReplyTarget('${msgId}', '${escapeHtml(msg.senderName || 'Student')}', '${escapeHtml(msg.text || 'Photo')}')">
                                         
                                         ${!isMe ? `<div class="font-bold text-[11px] text-brand-pink mb-1">${escapeHtml(msg.senderName || 'Student')}</div>` : ''}
 
@@ -352,7 +313,7 @@
                                 </div>
 
                                 ${isMe ? `
-                                    <button onclick="deleteMessageForEveryone('${msg.id}')" class="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:text-red-500 text-xs p-1" title="Delete">
+                                    <button onclick="deleteMessageForEveryone('${msgId}')" class="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:text-red-500 text-xs p-1" title="Delete">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 ` : ''}
@@ -367,7 +328,7 @@
                 });
         }
 
-        // --- DIRECT DUAL ENGINE FOR RECENT CHATS ---
+        // --- DUAL SYNC PERSISTENT CHATS LOGIC ---
         function getSavedRecentChats() {
             try {
                 const data = localStorage.getItem(`mp_recent_chats_${currentSession.phone}`);
@@ -380,7 +341,7 @@
         async function saveRecentChatBothUsers(targetPhone, targetName, targetAvatar, lastMsg) {
             if (!targetPhone || !currentSession.phone) return;
 
-            // 1. Local Cache Update
+            // 1. Local update for immediate UI feel
             const chats = getSavedRecentChats();
             chats[targetPhone] = {
                 phone: targetPhone,
@@ -392,26 +353,28 @@
             localStorage.setItem(`mp_recent_chats_${currentSession.phone}`, JSON.stringify(chats));
             renderRecentChatList();
 
-            // 2. Direct Sync to Both Users in Firestore
+            // 2. Dual Firestore Sync (Sender & Receiver Both)
             try {
-                // Sender's view
-                db.collection('students').doc(currentSession.phone)
+                const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+
+                // Sender's Record
+                await db.collection('students').doc(currentSession.phone)
                   .collection('recent_chats').doc(targetPhone).set({
                       phone: targetPhone,
                       name: targetName || targetPhone,
                       avatar: targetAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80',
                       lastMessage: lastMsg || 'Tap to chat',
-                      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                      updatedAt: timestamp
                   }, { merge: true });
 
-                // Receiver's view (INSTANT CHAT CARD CREATION FOR RECIPIENT)
-                db.collection('students').doc(targetPhone)
+                // Receiver's Record (Taaki samne wale ke paas bhi persistent list me aaye)
+                await db.collection('students').doc(targetPhone)
                   .collection('recent_chats').doc(currentSession.phone).set({
                       phone: currentSession.phone,
                       name: currentSession.name || 'Student',
                       avatar: currentSession.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80',
                       lastMessage: lastMsg || 'Tap to chat',
-                      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                      updatedAt: timestamp
                   }, { merge: true });
 
             } catch(e) {
@@ -427,13 +390,7 @@
             const chatsList = Object.values(chatsObj).sort((a,b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
             if (chatsList.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-gray-300">
-                        <i class="fas fa-comments text-2xl text-gray-300 mb-2"></i>
-                        <p class="text-xs text-gray-500 font-bold">Abhi koi private chat nahi hai</p>
-                        <p class="text-[11px] text-gray-400 mt-1">Naye student ka mobile number daal kar seedha chat shuru karein!</p>
-                    </div>
-                `;
+                container.innerHTML = '<p class="text-xs text-gray-400 text-center py-8">Koi private chat nahi hai.<br><b class="text-brand-pink">New Chat</b> button se naya number add karein!</p>';
                 return;
             }
 
@@ -446,12 +403,12 @@
                             <div class="truncate flex-1">
                                 <div class="flex justify-between items-center">
                                     <p class="font-bold text-xs text-gray-800 truncate">${escapeHtml(chat.name)}</p>
-                                    <span class="text-[10px] text-gray-400 font-medium">📱 ${chat.phone}</span>
+                                    <span class="text-[10px] text-gray-400 font-medium">${chat.phone}</span>
                                 </div>
-                                <p class="text-[11px] text-brand-pink font-medium truncate mt-0.5">${escapeHtml(chat.lastMessage || 'Tap to open chat')}</p>
+                                <p class="text-[11px] text-gray-500 truncate mt-0.5">${escapeHtml(chat.lastMessage || 'Tap to open chat')}</p>
                             </div>
                         </div>
-                        <button onclick="event.stopPropagation(); deleteRecentChat('${chat.phone}')" class="text-gray-300 hover:text-red-500 p-2 text-xs shrink-0 rounded-full hover:bg-red-50 transition" title="Delete">
+                        <button onclick="event.stopPropagation(); deleteRecentChat('${chat.phone}')" class="text-gray-400 hover:text-red-500 p-2 text-xs shrink-0 rounded-full hover:bg-red-50 transition" title="Delete Chat">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -468,7 +425,7 @@
             document.getElementById('dmListPanel').classList.add('hidden');
             
             document.getElementById('chatHeaderTitle').innerText = peerName;
-            document.getElementById('chatHeaderSubtitle').innerText = `📱 Private Chat (${peerPhone})`;
+            document.getElementById('chatHeaderSubtitle').innerText = `📱 ${peerPhone}`;
 
             const roomId = getDmRoomId(currentSession.phone, peerPhone);
             listenToRoom(roomId);
@@ -480,22 +437,20 @@
                 db.collection('students').doc(currentSession.phone)
                   .collection('recent_chats')
                   .onSnapshot(snapshot => {
-                      if (!snapshot) return;
+                      if (!snapshot || snapshot.empty) return;
                       const chats = getSavedRecentChats();
-                      let hasNewMessage = false;
+                      let hasNew = false;
 
                       snapshot.forEach(doc => {
                           const data = doc.data();
                           if (data && data.phone) {
-                              if (!chats[data.phone] || chats[data.phone].lastMessage !== data.lastMessage) {
-                                  hasNewMessage = true;
-                              }
+                              if(!chats[data.phone]) hasNew = true;
                               chats[data.phone] = {
                                   phone: data.phone,
                                   name: data.name || data.phone,
                                   avatar: data.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80',
                                   lastMessage: data.lastMessage || 'Tap to chat',
-                                  updatedAt: data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate().getTime() : Date.now()
+                                  updatedAt: data.updatedAt ? data.updatedAt.toDate().getTime() : Date.now()
                               };
                           }
                       });
@@ -503,15 +458,15 @@
                       localStorage.setItem(`mp_recent_chats_${currentSession.phone}`, JSON.stringify(chats));
                       renderRecentChatList();
 
-                      if (hasNewMessage && document.getElementById('dmListPanel').classList.contains('hidden')) {
+                      if(hasNew && document.getElementById('dmListPanel').classList.contains('hidden')) {
                           document.getElementById('unreadDmBadge').classList.remove('hidden');
                       }
-                  }, err => console.log("Realtime sync listener:", err));
+                  }, err => console.log("Firestore sync notice:", err));
             } catch(e) {}
         }
 
         function deleteRecentChat(targetPhone) {
-            if (confirm("Is chat ko recent list se hatayein?")) {
+            if (confirm("Kya aap is chat ko recent list se hatana chahte hain?")) {
                 const chats = getSavedRecentChats();
                 delete chats[targetPhone];
                 localStorage.setItem(`mp_recent_chats_${currentSession.phone}`, JSON.stringify(chats));
@@ -612,14 +567,14 @@
         };
 
         function clearChatForMe() {
-            if (confirm("Screen se saare purane messages clear karein?")) {
+            if (confirm("Clear all messages on your screen for this chat?")) {
                 localStorage.setItem(`clearedAt_${activeRoomId}_${currentSession.phone}`, Date.now());
                 listenToRoom(activeRoomId);
             }
         }
 
         async function deleteMessageForEveryone(docId) {
-            if (confirm("Is message ko delete karein?")) {
+            if (confirm("Delete this message?")) {
                 try {
                     await db.collection('lounge_messages').doc(docId).delete();
                 } catch (err) {
@@ -634,13 +589,12 @@
         async function searchStudentByPhone() {
             const phone = document.getElementById('searchPhoneInput').value.trim();
             const container = document.getElementById('searchResults');
+            container.innerHTML = '<p class="text-xs text-gray-400">Searching student...</p>';
 
             if (phone.length < 10) {
-                container.innerHTML = '<p class="text-xs text-red-500">Kripya sahi 10-digit mobile number enter karein.</p>';
+                container.innerHTML = '<p class="text-xs text-red-500">Please enter a valid 10-digit number.</p>';
                 return;
             }
-
-            container.innerHTML = '<p class="text-xs text-gray-400">Database me profile dhund rahe hain...</p>';
 
             try {
                 const doc = await db.collection('students').doc(phone).get();
@@ -650,7 +604,7 @@
                     const studentName = s.name || 'Student';
 
                     container.innerHTML = `
-                        <div class="flex items-center justify-between p-2.5 bg-rose-50 rounded-xl border border-rose-200 mt-2">
+                        <div class="flex items-center justify-between p-2.5 bg-rose-50 rounded-xl border border-rose-200">
                             <div class="flex items-center gap-2">
                                 <img src="${studentAvatar}" class="w-9 h-9 rounded-full border object-cover">
                                 <div>
@@ -658,22 +612,22 @@
                                     <p class="text-[10px] text-gray-500">${phone}</p>
                                 </div>
                             </div>
-                            <button onclick="startPrivateDm('${phone}', '${escapeHtml(studentName)}', '${studentAvatar}')" class="bg-brand-pink text-white text-xs px-3.5 py-1.5 rounded-lg font-bold hover:bg-rose-600 transition">Start Chat</button>
+                            <button onclick="startPrivateDm('${phone}', '${escapeHtml(studentName)}', '${studentAvatar}')" class="bg-brand-pink text-white text-xs px-3.5 py-1.5 rounded-lg font-bold hover:bg-rose-600 transition">Chat</button>
                         </div>
                     `;
                 } else {
                     container.innerHTML = `
-                        <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border mt-2">
+                        <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border">
                             <div>
-                                <p class="font-bold text-xs text-gray-800">Direct Number Chat</p>
+                                <p class="font-bold text-xs text-gray-800">Direct Number</p>
                                 <p class="text-[10px] text-gray-500">${phone}</p>
                             </div>
-                            <button onclick="startPrivateDm('${phone}', '${phone}', '')" class="bg-brand-pink text-white text-xs px-3.5 py-1.5 rounded-lg font-bold">Start Chat</button>
+                            <button onclick="startPrivateDm('${phone}', '${phone}', '')" class="bg-brand-pink text-white text-xs px-3.5 py-1.5 rounded-lg font-bold">Chat</button>
                         </div>
                     `;
                 }
             } catch (e) {
-                startPrivateDm(phone, phone, '');
+                container.innerHTML = '<p class="text-xs text-red-500">Error searching student.</p>';
             }
         }
 
@@ -681,6 +635,35 @@
             closeFindStudentModal();
             saveRecentChatBothUsers(peerPhone, peerName, peerAvatar, 'Chat Started');
             openPrivateDmFromList(peerPhone, peerName, peerAvatar);
+        }
+
+        async function requestNotificationPermission() {
+            if (!messaging) {
+                alert("Push Notifications supported nahi hain ya Service Worker load nahi hua.");
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    const token = await messaging.getToken({ 
+                        vapidKey: "BIoiuwWq1jVNclMLC6d1H8pOlAYj8mTd_bn-zTRERH0aFgkCjq5vcH9qG-D04N96ij0nhG2o_0jknBI6L-OZm0A"
+                    });
+
+                    if (token) {
+                        await db.collection('students').doc(currentSession.phone).set({ fcmToken: token }, { merge: true });
+                        alert("🔔 Push Notifications successfully enable ho gaye!");
+                    } else {
+                        alert("Notification token generate nahi ho paya.");
+                    }
+                } else if (permission === 'denied') {
+                    alert("Aapne browser settings se Notification BLOCK kar diya hai. Page address bar ke paas Lock 🔒 icon par click karke Reset/Allow karein.");
+                }
+            } catch (err) {
+                console.error("Notification permission error:", err);
+                alert("Error: " + err.message);
+            }
         }
 
         function openLightbox(url) {
